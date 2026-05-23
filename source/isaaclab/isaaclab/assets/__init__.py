@@ -45,3 +45,4 @@ from .deformable_object import DeformableObject, DeformableObjectCfg, Deformable
 from .rigid_object import RigidObject, RigidObjectCfg, RigidObjectData
 from .rigid_object_collection import RigidObjectCollection, RigidObjectCollectionCfg, RigidObjectCollectionData
 from .surface_gripper import SurfaceGripper, SurfaceGripperCfg
+from.fluid_object import FluidObject, FluidObjectCfg
