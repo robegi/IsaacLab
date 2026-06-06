@@ -71,7 +71,7 @@ def design_scene():
         anisotropy = True,
         smoothing = True,
         isosurface = True,
-        particleSpacing = 0.02,
+        particleSpacing = 0.01,
     )
     fluid_object = FluidObject(cfg=fluid_cfg)
 

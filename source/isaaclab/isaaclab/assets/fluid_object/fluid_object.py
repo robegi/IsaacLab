@@ -223,6 +223,16 @@ class FluidObject():
         )
         physicsUtils.add_physics_material_to_prim(self.stage, particle_system.GetPrim(), pbd_particle_material_path)
 
+        # Create and bind render material
+        render_material_path = self.create_pbd_material("OmniGlass")
+        particleUtils.add_pbd_particle_material(self.stage, render_material_path)
+        omni.kit.commands.execute(
+            "BindMaterialCommand",
+            prim_path=self.stage.GetPrimAtPath(particle_system_path).GetPath(),
+            material_path=render_material_path,
+            strength=None,
+        )
+
         particle_set_api = PhysxSchema.PhysxParticleSetAPI.Apply(points.GetPrim())
         PhysxSchema.PhysxParticleAPI(particle_set_api).CreateParticleSystemRel().SetTargets([particle_system_path])
 
@@ -302,7 +312,8 @@ class FluidObject():
     def set_particles_position_and_velocity(self, particles_pos: Union[torch.tensor, None] = None, 
                                             particles_vel: Union[torch.tensor, None] = None, 
                                             env_ids: Union[list[int], None] = None):
-        # Sets the particles' positions and velocities to the given array. Positions and velocities set as zero by default
+        # Sets the particles' positions and velocities to the given array. Positions and velocities set as
+        # default values if no argument is given
 
         # Unless specific ids are given, resets all envs
         if env_ids is None:
