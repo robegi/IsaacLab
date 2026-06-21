@@ -49,17 +49,18 @@ def design_scene():
 
     # Create separate groups called "Origin1", "Origin2", "Origin3"
     # Each group will have fluid in it
-    origins = [[0.0, 0.0, 1.0], [0.5, 0.0, 1.0], [0.0, 0.5, 1.0], [0.5, 0.5, 1.0],
-               [0.0, -0.5, 1.0], [0.5, -0.5, 1.0]]
+    origins = [[0.0, 0.0, 1.0], [0.5, 0.0, 1.0], [0.0, 0.5, 1.0], [0.5, 0.5, 1.0]]
     for i, origin in enumerate(origins):
         sim_utils.create_prim(f"/World/Origin_{i}", "Xform", translation=origin)
 
     # Fluid Object
     fluid_cfg = FluidObjectCfg(
         prim_path = "/World/Origin_.*",
+        sampled_shape = "cylinder", # Base isaac sim prims like "cylinder", "cube", "sphere" can be used for sampling the fluid
         num_envs = len(origins), # Number of environments,
-        radius = 0.1,
-        height = 0.4,
+        scale_x = 0.2, # Sampled prim scale along x-axis
+        scale_y = 0.2, # Sampled prim scale along y-axis
+        scale_z = 0.4, # Sampled prim scale along z-axis
         particle_mass = 0.001,
         density = 0.0,
         viscosity = 0.1,

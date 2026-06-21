@@ -204,11 +204,11 @@ class FluidObject():
             10  
         )
         omni.kit.commands.execute(
-            "CreateMeshPrim", prim_type="Cylinder", u_patches=cylinder_resolution, v_patches=cylinder_resolution, select_new_prim=False,
+            "CreateMeshPrim", prim_type=self.cfg.sampled_shape, u_patches=cylinder_resolution, v_patches=cylinder_resolution, select_new_prim=False,
             prim_path = cylinder_mesh_path
         )
         cylinder_mesh = UsdGeom.Mesh.Get(self.stage, cylinder_mesh_path)
-        physicsUtils.set_or_add_scale_op(cylinder_mesh, Gf.Vec3f(self.cfg.radius, self.cfg.radius, self.cfg.height))
+        physicsUtils.set_or_add_scale_op(cylinder_mesh, Gf.Vec3f(self.cfg.scale_x, self.cfg.scale_y, self.cfg.scale_z))
         physicsUtils.set_or_add_translate_op(cylinder_mesh, self.lower_pos) # Translate to the spawn position
 
         # configure target particle set:
