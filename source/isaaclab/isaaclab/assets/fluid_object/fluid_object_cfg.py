@@ -20,6 +20,7 @@ class FluidObjectCfg:
         hidden_particles: bool = False,
         anisotropy: bool = False,
         smoothing: bool = False,
+        transparency: bool = False,
     ):
         # Prim path
         self.prim_path = prim_path
@@ -51,3 +52,4 @@ class FluidObjectCfg:
         self.hidden_particles = hidden_particles
         self.anisotropy = anisotropy
         self.smoothing = smoothing
+        self.transparency = transparency

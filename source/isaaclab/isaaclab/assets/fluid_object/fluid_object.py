@@ -1,3 +1,4 @@
+import carb
 from omni.physx.scripts import physicsUtils, particleUtils, utils
 from pxr import Usd, UsdLux, UsdGeom, Sdf, Gf, Vt, UsdPhysics, PhysxSchema, UsdShade
 import omni.physx.bindings._physx as physx_settings_bindings
@@ -85,6 +86,10 @@ class FluidObject():
             omni.kit.commands.execute(
                 "BindMaterial", prim_path=particleSystemPath, material_path=pbd_particle_material_path
             )
+
+            # Enables translucency to render transparent materials if required
+            settings = carb.settings.get_settings()
+            settings.set("/rtx/translucency/enabled", True)
             
             # Create a pbd particle material and set it on the particle system
             particleUtils.add_pbd_particle_material(
@@ -99,6 +104,31 @@ class FluidObject():
 
             particle_system.CreateMaxVelocityAttr().Set(200)
 
+            # Create Grid
+            gridSpacing = self.cfg.particleSpacing + 0.001
+            lower = self.lower_pos + Gf.Vec3f(-gridSpacing*self.cfg.numParticlesX/2, -gridSpacing*self.cfg.numParticlesY/2, 0) # Translate lower corner
+            positions, velocities = particleUtils.create_particles_grid(
+                lower, gridSpacing, self.cfg.numParticlesX, self.cfg.numParticlesY, self.cfg.numParticlesZ
+            )
+
+
+            widths = [self.cfg.particleSpacing] * len(positions)
+            
+            points = particleUtils.add_physx_particleset_points(
+                stage=self.stage,
+                path=particlesPath,
+                positions_list=Vt.Vec3fArray(positions),
+                velocities_list=Vt.Vec3fArray(velocities),
+                widths_list=widths,
+                particle_system_path=particleSystemPath,
+                self_collision=True,
+                fluid=True,
+                particle_group=0,
+                particle_mass=self.cfg.particle_mass,
+                density=self.cfg.density,
+            )
+
+            # Render settings
             if self.cfg.anisotropy:
                 # apply api and use all defaults
                 PhysxSchema.PhysxParticleAnisotropyAPI.Apply(particle_system.GetPrim())
@@ -129,30 +159,6 @@ class FluidObject():
                 # Hide particles
                 visibility_attribute = points.GetVisibilityAttr()
                 visibility_attribute.Set("invisible")
-
-            # Create Grid
-            gridSpacing = self.cfg.particleSpacing + 0.001
-            lower = self.lower_pos + Gf.Vec3f(-gridSpacing*self.cfg.numParticlesX/2, -gridSpacing*self.cfg.numParticlesY/2, 0) # Translate lower corner
-            positions, velocities = particleUtils.create_particles_grid(
-                lower, gridSpacing, self.cfg.numParticlesX, self.cfg.numParticlesY, self.cfg.numParticlesZ
-            )
-
-
-            widths = [self.cfg.particleSpacing] * len(positions)
-            
-            self.particlesPrim = particleUtils.add_physx_particleset_points(
-                stage=self.stage,
-                path=particlesPath,
-                positions_list=Vt.Vec3fArray(positions),
-                velocities_list=Vt.Vec3fArray(velocities),
-                widths_list=widths,
-                particle_system_path=particleSystemPath,
-                self_collision=True,
-                fluid=True,
-                particle_group=0,
-                particle_mass=self.cfg.particle_mass,
-                density=self.cfg.density,
-            )
 
 
     def spawn_fluid_sampler(self, env_id: int = 0, pos: Gf.Vec3f | torch.Tensor | list = [0.0, 0.0, 0.0]):
@@ -223,8 +229,17 @@ class FluidObject():
         )
         physicsUtils.add_physics_material_to_prim(self.stage, particle_system.GetPrim(), pbd_particle_material_path)
 
+        # Enable transparent material if required
+        if self.cfg.transparency:
+            # Set translucency to render transparent materials
+            material_type = "OmniGlass"
+            settings = carb.settings.get_settings()
+            settings.set("/rtx/translucency/enabled", True)
+        else:
+            material_type = "OmniPBR"
+
         # Create and bind render material
-        render_material_path = self.create_pbd_material("OmniGlass")
+        render_material_path = self.create_pbd_material(material_type)
         particleUtils.add_pbd_particle_material(self.stage, render_material_path)
         omni.kit.commands.execute(
             "BindMaterialCommand",
@@ -249,6 +264,7 @@ class FluidObject():
         sampling_api.CreateMaxSamplesAttr().Set(5e5)
         sampling_api.CreateVolumeAttr().Set(True)
 
+        # Render settings
         if self.cfg.anisotropy:
             # apply api and use all defaults
             PhysxSchema.PhysxParticleAnisotropyAPI.Apply(particle_system.GetPrim())
@@ -280,6 +296,7 @@ class FluidObject():
             visibility_attribute = points.GetVisibilityAttr()
             visibility_attribute.Set("invisible")
 
+    
     def get_particles_position(self, env_ids: Union[list[int], None] = None) -> torch.Tensor:
         # Gets particles' positions in the input environment and velocities and outputs them as torch tensors
         if env_ids is None:
@@ -341,8 +358,8 @@ class FluidObject():
         create_list = []
         omni.kit.commands.execute(
             "CreateAndBindMdlMaterialFromLibrary",
-            mdl_name="OmniPBR.mdl",
-            mtl_name="OmniPBR",
+            mdl_name=mat_name + ".mdl",
+            mtl_name=mat_name,
             mtl_created_list=create_list,
             bind_selected_prims=False,
             select_new_prim=False,

@@ -47,36 +47,34 @@ def design_scene():
     cfg = sim_utils.DomeLightCfg(intensity=2000.0, color=(0.8, 0.8, 0.8))
     cfg.func("/World/Light", cfg)
 
-    # Create separate groups called "Origin1", "Origin2", "Origin3"
-    # Each group will have fluid in it
-    origins = [[0.0, 0.0, 1.0], [0.5, 0.0, 1.0], [0.0, 0.5, 1.0], [0.5, 0.5, 1.0],
-               [0.0, -0.5, 1.0], [0.5, -0.5, 1.0]]
-    for i, origin in enumerate(origins):
-        sim_utils.create_prim(f"/World/Origin_{i}", "Xform", translation=origin)
+    # Create origin and fluid prim
+    origin = [0.0, 0.0, 1.0]
+    sim_utils.create_prim(f"/World/Origin_{0}", "Xform", translation=origin)
 
     # Fluid Object
     fluid_cfg = FluidObjectCfg(
         prim_path = "/World/Origin_.*",
-        num_envs = len(origins), # Number of environments,
-        radius = 0.1,
-        height = 0.4,
+        num_envs = 1, # Number of environments,
+        numParticlesX = 40,
+        numParticlesY = 40,
+        numParticlesZ = 40,
         particle_mass = 0.001,
         density = 0.0,
         viscosity = 0.1,
-        hidden_particles = False,
-        anisotropy = False,
-        smoothing = False,
-        isosurface = False,
+        hidden_particles = True,
+        anisotropy = True,
+        smoothing = True,
+        isosurface = True,
     )
     fluid_object = FluidObject(cfg=fluid_cfg)
 
     # Spawn the fluid in the three origins
     # NOTE: if the environments are replicated like during RL, it is sufficient to spawn the fluid only in the first environment
-    fluid_object.spawn_fluid_grid(env_id=0, pos=origins[0])
+    fluid_object.spawn_fluid_grid(env_id=0, pos=origin)
 
     # return the scene information
     scene_entities = {"fluid": fluid_object}
-    return scene_entities, origins
+    return scene_entities, origin
 
 
 def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, FluidObject], origins: torch.Tensor):
@@ -98,9 +96,9 @@ def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, FluidObj
             sim_time = 0.0
             count = 0
             # Set internal base values for the fluid (it only runs the first time)
-            fluid_object.initialize_fluid_data(base_env_origin = origins[0])
+            fluid_object.initialize_fluid_data(base_env_origin = origins)
             # Create random translations for the reset position
-            offset = torch.randn(len(origins), 1, 3).cuda()*0.1
+            offset = torch.randn(1, 1, 3).cuda()*0.1
             reset_particle_pos = fluid_object.initial_particles_pos + offset
             # Reset the fluid position (no argument resets it to base stored values)
             fluid_object.set_particles_position_and_velocity(particles_pos = reset_particle_pos)
