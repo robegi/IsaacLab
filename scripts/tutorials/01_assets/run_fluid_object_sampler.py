@@ -111,7 +111,7 @@ def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, FluidObj
             offset = torch.randn(len(origins), 1, 3).cuda()*0.1
             reset_particle_pos = fluid_object.initial_particles_pos + offset
             # Reset the fluid position (no argument resets it to base stored values)
-            fluid_object.set_particles_position_and_velocity(particles_pos = reset_particle_pos)
+            fluid_object.set_particles_pos_and_vel(particles_pos = reset_particle_pos)
 
             print("----------------------------------------")
             print("[INFO]: Resetting object state...")
@@ -123,8 +123,8 @@ def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, FluidObj
         count += 1
         # get the particles positions and velocities
         if count % 50 == 0:
-            particle_positions = fluid_object.get_particles_position()
-            particle_velocities = fluid_object.get_particles_velocity()
+            particle_positions = fluid_object.get_particles_pos()
+            particle_velocities = fluid_object.get_particles_vel()
 
 
 

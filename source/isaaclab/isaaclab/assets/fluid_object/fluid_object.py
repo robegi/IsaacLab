@@ -297,7 +297,7 @@ class FluidObject():
             visibility_attribute.Set("invisible")
 
     
-    def get_particles_position(self, env_ids: Union[list[int], None] = None) -> torch.Tensor:
+    def get_particles_pos(self, env_ids: Union[list[int], None] = None) -> torch.Tensor:
         # Gets particles' positions in the input environment and velocities and outputs them as torch tensors
         if env_ids is None:
             env_ids = range(self.cfg.num_envs)
@@ -311,7 +311,7 @@ class FluidObject():
 
         return particles_pos
     
-    def get_particles_velocity(self, env_ids: Union[list[int], None] = None) -> torch.Tensor:
+    def get_particles_vel(self, env_ids: Union[list[int], None] = None) -> torch.Tensor:
         # Gets particles' velocities in the input environment and outputs them as torch tensors
         if env_ids is None:
             env_ids = range(self.cfg.num_envs)
@@ -326,7 +326,7 @@ class FluidObject():
 
         return particles_vel
 
-    def set_particles_position_and_velocity(self, particles_pos: Union[torch.tensor, None] = None, 
+    def set_particles_pos_and_vel(self, particles_pos: Union[torch.tensor, None] = None, 
                                             particles_vel: Union[torch.tensor, None] = None, 
                                             env_ids: Union[list[int], None] = None):
         # Sets the particles' positions and velocities to the given array. Positions and velocities set as
